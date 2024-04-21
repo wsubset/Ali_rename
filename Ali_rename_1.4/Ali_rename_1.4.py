@@ -62,7 +62,7 @@ def scrape(file_list, path):
             print("输入错误，请重新输入！")
 
     # 使用TMDb API查找剧集名称
-    tmdb = TMDb(key="14f84cbc5144dcee9897498ec6611a4c", language="zh-CN", region="CN")
+    tmdb = TMDb(key="your API", language="zh-CN", region="CN") # key中可使用自己的API
     results = tmdb.search().multi(title)
     tv = [tmdb.tv(result.id).details() for result in results if result.is_tv()]
 
