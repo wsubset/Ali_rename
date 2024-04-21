@@ -1,6 +1,6 @@
 # Ali-rename
 # 仅供学习交流，请勿商用，若有不妥之处，侵联必删。
-# Updated on April 20th  --by shadow_tiny
+# Updated on April 20th  --by shadow-tiny
 
 # 第一次使用需下载Aligo库 以及 TMDb库（请自行申请api）
 # pip install --upgrade aligo
