@@ -58,27 +58,42 @@ def scrape(file_list, path):
     # 获取唯一的文件后缀
     unique_suffixes = {file.name.split('.')[-1] for file in file_list}
 
-    #调用ai识别番剧名
-    spark = ChatSparkLLM(
-        spark_api_url=SPARKAI_URL,
-        spark_app_id=SPARKAI_APP_ID,
-        spark_api_key=SPARKAI_API_KEY,
-        spark_api_secret=SPARKAI_API_SECRET,
-        spark_llm_domain=SPARKAI_DOMAIN,
-        streaming=False,
-    )
-    messages = [ChatMessage(
-        role="user",
-        content=f"帮我识别出{file_list[0].name}中的剧名，并按如下格式'name:剧名'返回剧名"
-    )]
-    print(file_list[0].name)
-    handler = ChunkPrintHandler()
-    response = spark.generate([messages], callbacks=[handler])
-    text = response.generations[0][0].text
-    print(f'ai回答如下：{text}')
-    title = re.split(':', text)[1]
-    print(title)
+    #输出文件中的第一个文件名
+    print(f'文件中的第一个文件名:{file_list[0].name}')
 
+    #选择刮取剧名的方法
+    while True:
+        flag = int(input('选择刮取剧名的方法:1:由路径名确定  2:从文件名中识别\n'))
+
+        if flag not in [1, 2]:
+            print('输入错误，请重新输入！')
+            continue
+        if flag == 1:
+            # 切割文件名并匹配原产国名称
+            title = path.split('/')[-1]
+            print(f"刮取的剧名为：{title}")
+            break
+        if flag == 2:
+            # 调用ai识别番剧名
+            spark = ChatSparkLLM(
+                spark_api_url=SPARKAI_URL,
+                spark_app_id=SPARKAI_APP_ID,
+                spark_api_key=SPARKAI_API_KEY,
+                spark_api_secret=SPARKAI_API_SECRET,
+                spark_llm_domain=SPARKAI_DOMAIN,
+                streaming=False,
+            )
+            messages = [ChatMessage(
+                role="user",
+                content=f"帮我识别出{file_list[0].name}中的剧名，并按如下格式'name:剧名'返回剧名"
+            )]
+            handler = ChunkPrintHandler()
+            response = spark.generate([messages], callbacks=[handler])
+            text = response.generations[0][0].text
+            print(f'ai回答如下：{text}')
+            title = re.split(':', text)[1]
+            print(f"刮取的剧名为：{title}")
+            break
     # 使用TMDb API查找剧集名称
     tmdb = TMDb(key="key", language="zh-CN", region="CN")  # key中可使用自己的API
     results = tmdb.search().multi(title)
@@ -90,7 +105,7 @@ def scrape(file_list, path):
         tv_oname = None
     elif len(tv) == 1:
         tv_oname = tv[0].original_name
-        print(f"剧集名为：{tv_oname}")
+        print(f"TMDB识别出的剧集名为：{tv_oname}")
     else:
         print("选择你需要的剧集")
         for index, show in enumerate(tv, 1):
@@ -107,7 +122,6 @@ def rename(file_list_2, name, suffixes, drive_id):
     # 初始化计数列表，其长度与后缀相同，全部元素设置为1
     ep = [1] * len(suffixes)
     video_num = 1
-    print(ep)
     # 创建新文件名列表
     new_name_list = []
     # 对每个文件进行处理
